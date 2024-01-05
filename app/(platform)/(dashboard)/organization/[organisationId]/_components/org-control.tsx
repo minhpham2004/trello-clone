@@ -15,7 +15,8 @@ function OrgControl() {
       organization: params.organisationId as string,
     });
   }, [setActive, params.organisationId]);
-  return <div>OrgControl</div>;
+
+  return <></>
 }
 
 export default OrgControl;

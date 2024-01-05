@@ -5,6 +5,7 @@ function OrganisationLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <OrgControl />
+      {children}
     </>
   );
 }
