@@ -27,7 +27,7 @@ export const useAction = <TInput, TOutput>(
     async (input: TInput) => {
       setIsLoading(true);
 
-      try {
+      try {   
         const result = await action(input);
 
         if (!result) return;
