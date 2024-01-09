@@ -5,7 +5,7 @@ import { InputType, ReturnType } from "./type";
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { createSafeAction } from "@/lib/create-safe-action";
-import { DeleteBoardSchema } from "./schema";
+import { UpdateListSchema } from "./schema";
 import { redirect } from "next/navigation";
 
 const handler = async (data: InputType): Promise<ReturnType> => {
@@ -17,24 +17,30 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     };
   }
 
-  const { id } = data;
-  let board;
+  const { title, id, boardId } = data;
+  let list;
 
   try {
-    board = await db.board.delete({
+    list = await db.list.update({
       where: {
         id,
-        orgId,
+        boardId,
+        board: {
+          orgId,
+        },
+      },
+      data: {
+        title,
       },
     });
+
+    revalidatePath(`/board/${boardId}`);
+    return { data: list };
   } catch (error) {
     return {
       error: "Failed to update",
     };
   }
-
-  revalidatePath(`/organization/${id}`);
-  redirect(`/organization/${orgId}`);
 };
 
-export const deleteBoard = createSafeAction(DeleteBoardSchema, handler);
+export const updateList = createSafeAction(UpdateListSchema, handler);
