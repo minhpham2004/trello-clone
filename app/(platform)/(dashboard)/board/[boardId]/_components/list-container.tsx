@@ -17,7 +17,7 @@ function ListContainer({ boardId, data }: ListContainerProps) {
     setOrderData(data);
   }, [data]);
   return (
-    <ol>
+    <ol className="flex gap-x-4">
       {orderData.map((list, index) => (
         <ListItem key={list.id} index={index} data={list} />
       ))}

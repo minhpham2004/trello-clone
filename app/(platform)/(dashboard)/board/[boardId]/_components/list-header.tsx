@@ -11,9 +11,10 @@ import ListOptions from "./list-options";
 
 interface ListHeaderProps {
   data: List;
+  onAddCard: () => void
 }
 
-function ListHeader({ data }: ListHeaderProps) {
+function ListHeader({ data, onAddCard }: ListHeaderProps) {
   const [title, setTitle] = useState(data.title);
   const [isEditing, setIsEditing] = useState(false);
 
