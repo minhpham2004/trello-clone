@@ -15,8 +15,8 @@ export async function POST(req: Request) {
     event = stripe.webhooks.constructEvent(
       body,
       signature,
-      process.env.STRIPE_WEBHOOK_SECRET!,
-    )
+      process.env.STRIPE_WEBHOOK_SECRET!
+    );
   } catch (error) {
     return new NextResponse("Webhook error", { status: 400 });
   }
@@ -57,11 +57,11 @@ export async function POST(req: Request) {
       data: {
         stripePriceId: subscription.items.data[0].price.id,
         stripeCurrentPeriodEnd: new Date(
-          subscription.current_period_end * 1000,
+          subscription.current_period_end * 1000
         ),
       },
     });
   }
 
   return new NextResponse(null, { status: 200 });
-};
+}
