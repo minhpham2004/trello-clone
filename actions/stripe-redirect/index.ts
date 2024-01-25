@@ -2,14 +2,15 @@
 
 import { auth, currentUser } from "@clerk/nextjs";
 import { revalidatePath } from "next/cache";
+import { ACTION, ENTITY_TYPE } from "@prisma/client";
 
 import { db } from "@/lib/db";
+import { createAuditLog } from "@/lib/create-audit-log";
 import { createSafeAction } from "@/lib/create-safe-action";
 
 import { StripeRedirectSchema } from "./schema";
 import { InputType, ReturnType } from "./types";
-import { createAuditLog } from "@/lib/create-audit-log";
-import { ACTION, ENTITY_TYPE } from "@prisma/client";
+
 import { absoluteUrl } from "@/lib/utils";
 import { stripe } from "@/lib/stripe";
 
@@ -17,18 +18,21 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   const { userId, orgId } = auth();
   const user = await currentUser();
 
-  if (!user || !userId || !orgId) {
+  if (!userId || !orgId || !user) {
     return {
       error: "Unauthorized",
     };
   }
 
   const settingsUrl = absoluteUrl(`/organization/${orgId}`);
+
   let url = "";
 
   try {
     const orgSubscription = await db.orgSubscription.findUnique({
-      where: { orgId },
+      where: {
+        orgId,
+      },
     });
 
     if (orgSubscription && orgSubscription.stripeCustomerId) {
@@ -36,6 +40,8 @@ const handler = async (data: InputType): Promise<ReturnType> => {
         customer: orgSubscription.stripeCustomerId,
         return_url: settingsUrl,
       });
+
+      url = stripeSession.url;
     } else {
       const stripeSession = await stripe.checkout.sessions.create({
         success_url: settingsUrl,
@@ -49,7 +55,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
             price_data: {
               currency: "USD",
               product_data: {
-                name: "Pro",
+                name: "Taskify Pro",
                 description: "Unlimited boards for your organization",
               },
               unit_amount: 2000,
@@ -60,19 +66,20 @@ const handler = async (data: InputType): Promise<ReturnType> => {
             quantity: 1,
           },
         ],
-        metadata: { orgId },
+        metadata: {
+          orgId,
+        },
       });
 
       url = stripeSession.url || "";
     }
-  } catch (error) {
+  } catch {
     return {
       error: "Something went wrong!",
     };
   }
 
   revalidatePath(`/organization/${orgId}`);
-
   return { data: url };
 };
 
